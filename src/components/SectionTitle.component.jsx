@@ -1,9 +1,6 @@
-import { Text, View } from "react-native";
+import { Text } from "react-native";
+import { styles } from "../styles/styles";
 
 export default function SectionTitle({ title }) {
-  return (
-    <View style={{ paddingVertical: 10 }}>
-      <Text style={{ fontSize: 20, fontWeight: "bold" }}>{title}</Text>
-    </View>
-  );
+  return <Text style={styles.sectionTitle}>{title}</Text>;
 }

@@ -1,12 +1,13 @@
+// src/Screens/ClassesScreen.jsx
 import React, { useState } from "react";
 import {
   View,
   Text,
-  FlatList,
   Alert,
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
 
 import BackButton from "../components/BackButton.component";
@@ -19,7 +20,13 @@ import { saveJSON } from "../storage/storage";
 import { KEY_CLASSES, genId } from "../storage/ids";
 import { styles } from "../styles/styles";
 
-export default function ClassesScreen({ classes, setClasses }) {
+// Zustand Store
+import { useSchoolStore } from "../storage/useSchoolStore";
+
+export default function ClassesScreen() {
+  const classes = useSchoolStore((s) => s.classes);
+  const setClasses = useSchoolStore((s) => s.setClasses);
+
   const [form, setForm] = useState({
     id: null,
     name: "",
@@ -46,6 +53,39 @@ export default function ClassesScreen({ classes, setClasses }) {
       return Alert.alert("Teacher name required") || false;
     if (!form.totalStudents || isNaN(Number(form.totalStudents)))
       return Alert.alert("Students must be number") || false;
+
+    // 🔴 PREVENT BLANK SUBJECTS
+    const hasBlankSubject = form.subjects.some(
+      (s) => !s.name || s.name.trim() === ""
+    );
+    if (hasBlankSubject) {
+      Alert.alert("Invalid Subject", "Subject names cannot be empty.");
+      return false;
+    }
+
+    // 🔴 DUPLICATE SUBJECT CHECK
+    const names = form.subjects.map((s) => s.name.trim().toLowerCase());
+    const hasDuplicates = new Set(names).size !== names.length;
+    if (hasDuplicates) {
+      Alert.alert(
+        "Duplicate Subject",
+        "You have added the same subject twice."
+      );
+      return false;
+    }
+
+    // 🔴 DUPLICATE CLASS CHECK
+    const exists = classes.some(
+      (c) =>
+        c.name.toLowerCase().trim() === form.name.toLowerCase().trim() &&
+        c.section.toLowerCase().trim() === form.section.toLowerCase().trim() &&
+        c.id !== form.id // avoid blocking while editing
+    );
+    if (exists) {
+      Alert.alert("Duplicate Class", "This class already exists.");
+      return false;
+    }
+
     return true;
   };
 
@@ -61,15 +101,12 @@ export default function ClassesScreen({ classes, setClasses }) {
       subjects: form.subjects.map((s) => ({ name: s.name })),
     };
 
-    setClasses((prev) => {
-      const exists = prev.find((c) => c.id === cleaned.id);
-      const updated = exists
-        ? prev.map((c) => (c.id === cleaned.id ? cleaned : c))
-        : [cleaned, ...prev];
+    const updated = classes.some((c) => c.id === cleaned.id)
+      ? classes.map((c) => (c.id === cleaned.id ? cleaned : c))
+      : [cleaned, ...classes];
 
-      saveJSON(KEY_CLASSES, updated);
-      return updated;
-    });
+    setClasses(updated);
+    saveJSON(KEY_CLASSES, updated);
 
     Alert.alert("Success", form.id ? "Updated" : "Added");
     resetForm();
@@ -93,20 +130,16 @@ export default function ClassesScreen({ classes, setClasses }) {
         text: "Delete",
         style: "destructive",
         onPress: () => {
-          setClasses((prev) => {
-            const next = prev.filter((c) => c.id !== id);
-            saveJSON(KEY_CLASSES, next);
-            return next;
-          });
+          const next = classes.filter((c) => c.id !== id);
+          setClasses(next);
+          saveJSON(KEY_CLASSES, next);
         },
       },
     ]);
   };
 
-  // ---------- HEADER (FORM) ----------
-  const renderHeader = () => (
-    <View style={{ padding: 16 }}>
-      <BackButton />
+  const renderForm = () => (
+    <View>
       <SectionTitle title="Define / Edit Class" />
 
       <Input
@@ -123,8 +156,8 @@ export default function ClassesScreen({ classes, setClasses }) {
 
       <Input
         label="Total Students"
-        value={form.totalStudents}
         keyboardType="numeric"
+        value={form.totalStudents}
         onChange={(v) => setForm({ ...form, totalStudents: v })}
       />
 
@@ -182,49 +215,68 @@ export default function ClassesScreen({ classes, setClasses }) {
     </View>
   );
 
-  // ---------- RENDER ROW ----------
-  const renderItem = ({ item }) => (
-    <View style={styles.listRow}>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.itemTitle}>
-          {item.name} - {item.section}
-        </Text>
-
-        <Text style={styles.itemMeta}>Teacher: {item.classTeacherName}</Text>
-
-        <Text style={styles.itemSubjects}>
-          Subjects: {item.subjects.map((s) => s.name).join(", ")}
-        </Text>
-      </View>
-
-      <View style={styles.rowActions}>
-        <SmallIconButton
-          icon="edit"
-          color="#2563eb"
-          onPress={() => startEdit(item)}
-        />
-        <SmallIconButton
-          icon="trash-2"
-          color="#dc2626"
-          onPress={() => deleteClass(item.id)}
-        />
-      </View>
-    </View>
-  );
-
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <FlatList
-        ListHeaderComponent={renderHeader}
-        data={classes}
-        keyExtractor={(i) => i.id}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 40 }}
-        nestedScrollEnabled
-      />
-    </KeyboardAvoidingView>
+    <View style={styles.screenWrapper}>
+      {/* BACK BUTTON — now positioned higher using topOffset */}
+      <BackButton topOffset={60} />
+
+      {/* HEADER */}
+      <View style={styles.curvedHeader}>
+        <View style={styles.headerRow}>
+          <View style={{ flex: 1 }} />
+          <Text style={styles.dateText}>{new Date().toDateString()}</Text>
+        </View>
+
+        <View style={styles.headerTitleBox}>
+          <Text style={styles.headerTitleIcon}>📚</Text>
+          <Text style={styles.headerTitleText}>Class Management</Text>
+        </View>
+      </View>
+
+      {/* BODY */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          style={styles.whiteContainer}
+          contentContainerStyle={{ paddingBottom: 120 }}
+          keyboardShouldPersistTaps="always"
+        >
+          {renderForm()}
+
+          {classes.map((item) => (
+            <View key={item.id} style={styles.listRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.itemTitle}>
+                  {item.name} - {item.section}
+                </Text>
+
+                <Text style={styles.itemMeta}>
+                  Teacher: {item.classTeacherName}
+                </Text>
+
+                <Text style={styles.itemSubjects}>
+                  Subjects: {item.subjects.map((s) => s.name).join(", ")}
+                </Text>
+              </View>
+
+              <View style={styles.rowActions}>
+                <SmallIconButton
+                  icon="edit"
+                  color="#2563eb"
+                  onPress={() => startEdit(item)}
+                />
+                <SmallIconButton
+                  icon="trash-2"
+                  color="#dc2626"
+                  onPress={() => deleteClass(item.id)}
+                />
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }

@@ -1,79 +1,51 @@
-import React, { useEffect, useState, useCallback } from "react";
-import {
-  SafeAreaView,
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
-import { loadJSON, saveJSON } from "../../../src/storage/storage";
-import { KEY_CLASSES, KEY_EXAMS } from "../../../src/storage/ids";
-import ClassesScreen from "../../../src/Screens/ClassesScreen";
-import ExamsScreen from "../../../src/Screens/ExamsScreen";
+import { View, Text, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router";
+import { styles } from "../../../src/styles/styles";
 
-export default function ClassManagementIndex() {
-  const [screen, setScreen] = useState("classes"); // classes | exams
-  const [classes, setClasses] = useState([]);
-  const [exams, setExams] = useState([]);
-
-  const loadAll = useCallback(async () => {
-    const cls = await loadJSON(KEY_CLASSES, []);
-    const ex = await loadJSON(KEY_EXAMS, []);
-    setClasses(cls);
-    setExams(ex);
-  }, []);
-
-  useEffect(() => {
-    loadAll();
-  }, []);
+export default function ClassManagementHome() {
+  const router = useRouter();
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      {/* Top Navigation */}
-      <View style={styles.topBar}>
-        <TouchableOpacity
-          style={[styles.topButton, screen === "classes" && styles.activeTab]}
-          onPress={() => setScreen("classes")}
-        >
-          <Text style={styles.topButtonText}>Classes</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.topButton, screen === "exams" && styles.activeTab]}
-          onPress={() => setScreen("exams")}
-        >
-          <Text style={styles.topButtonText}>Exams</Text>
-        </TouchableOpacity>
+    <View style={styles.screenWrapper}>
+      {/* HEADER */}
+      <View style={styles.curvedHeader}>
+        <View style={styles.headerTitleBox}>
+          <Text style={styles.headerTitleIcon}>🛠️</Text>
+          <Text style={styles.headerTitleText}>Class Management</Text>
+        </View>
       </View>
 
-      {/* Screens */}
-      {screen === "classes" && (
-        <ClassesScreen classes={classes} setClasses={setClasses} />
-      )}
+      {/* GRID MENU */}
+      <View style={styles.whiteContainer}>
+        <View style={styles.menuGrid}>
+          {/* 1️⃣ Create / Edit Class */}
+          <TouchableOpacity
+            style={styles.menuCard}
+            onPress={() => router.push("/admin/classManagement/create")}
+          >
+            <Text style={styles.menuCardIcon}>➕</Text>
+            <Text style={styles.menuCardLabel}>Create / Edit Class</Text>
+          </TouchableOpacity>
 
-      {screen === "exams" && (
-        <ExamsScreen classes={classes} exams={exams} setExams={setExams} />
-      )}
-    </SafeAreaView>
+          {/* 2️⃣ View Classes */}
+          <TouchableOpacity
+            style={styles.menuCard}
+            onPress={() => router.push("/admin/classManagement/view")}
+          >
+            <Text style={styles.menuCardIcon}>📄</Text>
+            <Text style={styles.menuCardLabel}>View Classes</Text>
+          </TouchableOpacity>
+
+          {/* 3️⃣ Schedule Exams */}
+          <TouchableOpacity
+            style={styles.menuCard}
+            onPress={() => router.push("/admin/classManagement/exams")}
+          >
+            <Text style={styles.menuCardIcon}>📝</Text>
+            <Text style={styles.menuCardLabel}>Schedule Exams</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  topBar: {
-    flexDirection: "row",
-    backgroundColor: "#1C5A52",
-    paddingVertical: 12,
-  },
-  topButton: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  activeTab: {
-    backgroundColor: "#174A44",
-  },
-  topButtonText: {
-    color: "#fff",
-    fontWeight: "700",
-  },
-});

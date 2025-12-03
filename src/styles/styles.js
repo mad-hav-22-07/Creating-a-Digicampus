@@ -2,7 +2,100 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  // ---------- TOP BAR ----------
+  // ---------- SCREEN + CURVED HEADER ----------
+  screenWrapper: {
+    flex: 1,
+    backgroundColor: "#1C5A52",
+  },
+
+  curvedHeader: {
+    backgroundColor: "#1C5A52",
+    paddingTop: 50,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+  },
+
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end", // pushes everything to the right
+    alignItems: "center",
+    width: "100%",
+    position: "absolute",
+    top: 55,
+    right: 20,
+  },
+
+  dateText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  headerTitleBox: {
+    marginTop: 16,
+    alignItems: "center",
+  },
+
+  headerTitleIcon: {
+    fontSize: 40,
+    color: "#fff",
+  },
+
+  headerTitleText: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#fff",
+    marginTop: 6,
+    textAlign: "center",
+  },
+
+  whiteContainer: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    marginTop: -24,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+  },
+
+  // ---------- GRID MENU ----------
+  menuGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    rowGap: 18,
+    marginTop: 10,
+  },
+
+  menuCard: {
+    width: "47%",
+    backgroundColor: "#FFEBDD",
+    paddingVertical: 22,
+    paddingHorizontal: 16,
+    borderRadius: 18,
+    shadowColor: "#000",
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+
+  menuCardIcon: {
+    fontSize: 30,
+    marginBottom: 10,
+  },
+
+  menuCardLabel: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1C1C1C",
+    lineHeight: 20,
+  },
+
+  // ---------- TOP BAR (if still used) ----------
   topBar: {
     flexDirection: "row",
     borderBottomWidth: 1,
@@ -14,7 +107,7 @@ export const styles = StyleSheet.create({
   topButtonActive: { backgroundColor: "#174A44" },
   topButtonText: { fontWeight: "600", color: "#fff" },
 
-  // ---------- PAGE TITLES ----------
+  // ---------- TITLES ----------
   mainTitle: {
     fontSize: 24,
     fontWeight: "800",
@@ -23,10 +116,14 @@ export const styles = StyleSheet.create({
   },
   paragraph: { marginTop: 8, color: "#4b5563", fontSize: 14 },
 
-  // ❌ REMOVED → replaced by SectionTitle
-  // sectionTitle: {},
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1C1C1C",
+    marginBottom: 10,
+  },
 
-  // ---------- INPUTS ----------
+  // ---------- INPUT ----------
   inputGroup: { marginBottom: 14 },
   label: { fontWeight: "700", marginBottom: 6, color: "#1C1C1C" },
 
@@ -72,9 +169,6 @@ export const styles = StyleSheet.create({
     padding: 6,
   },
   addButtonText: { fontWeight: "700", color: "#1C5A52" },
-
-  // ❌ REMOVED → replaced by <SectionTitle />
-  // subHeader: {},
 
   // ---------- SUBJECT ROW ----------
   subjectRow: {
@@ -227,7 +321,22 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     marginBottom: 8,
+
+    // ⬆️ move upward
+    marginTop: -5, // adjust between -5 to -20 depending on your design
   },
+  backAbsolute: {
+    position: "absolute",
+    top: 20, // ← raise it higher
+    left: 20,
+    zIndex: 999,
+  },
+  headerRowRight: {
+    width: "100%",
+    alignItems: "flex-end",
+    paddingRight: 4,
+  },
+
   backButtonText: {
     fontSize: 16,
     fontWeight: "600",

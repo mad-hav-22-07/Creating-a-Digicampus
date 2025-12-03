@@ -1,7 +1,9 @@
-export default function StudentHome() {
+import { View, Text } from "react-native";
+
+export default function Student() {
   return (
-    <View style={{ padding: 20 }}>
-      <Text style={{ fontSize: 22, fontWeight: "700" }}>Student Area</Text>
+    <View>
+      <Text>Student Screen</Text>
     </View>
   );
 }

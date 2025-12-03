@@ -1,26 +1,32 @@
-import React from "react";
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
-import { Feather } from "@expo/vector-icons";
+// src/components/BackButton.component.jsx
+import { TouchableOpacity, View, Text } from "react-native";
 import { useRouter } from "expo-router";
 
-export default function BackButton() {
+export default function BackButton({ topOffset = 0 }) {
   const router = useRouter();
 
   return (
-    <TouchableOpacity style={styles.container} onPress={() => router.back()}>
-      <Feather name="arrow-left" size={22} color="#1C5A52" />
-      <Text style={styles.text}>Back</Text>
+    <TouchableOpacity
+      onPress={() => router.back()}
+      activeOpacity={0.7}
+      style={{
+        position: "absolute",
+        left: 15,
+        top: 0 + topOffset, // ← now adjustable!!
+        zIndex: 999,
+      }}
+    >
+      <View style={{}}>
+        <Text
+          style={{
+            fontSize: 30,
+            color: "#ea8f75ff",
+            fontWeight: "700",
+          }}
+        >
+          ←
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 10,
-    marginBottom: 14,
-  },
-  text: { fontSize: 16, fontWeight: "600", color: "#1C5A52" },
-});
