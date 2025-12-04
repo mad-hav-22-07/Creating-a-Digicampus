@@ -1,9 +1,16 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ImageBackground,
+} from "react-native";
 import { useSchoolStore } from "../../../src/storage/useSchoolStore";
 import BackButton from "../../../src/components/BackButton.component";
 import SectionTitle from "../../../src/components/SectionTitle.component";
 import { styles } from "../../../src/styles/styles";
+import Feather from "@expo/vector-icons/Feather";
 
 export default function ViewClassesPage() {
   const classes = useSchoolStore((s) => s.classes);
@@ -13,66 +20,82 @@ export default function ViewClassesPage() {
 
   return (
     <View style={styles.screenWrapper}>
-      {/* HEADER */}
-      <View style={styles.curvedHeader}>
-        {/* EXACT SAME AS CREATE PAGE */}
-        <View style={styles.headerRow}>
-          <BackButton />
+      {/* FULL HEADER WITH BACKGROUND */}
+      <ImageBackground
+        source={require("../../../assets/header/bg.png")}
+        style={styles.headerBackground}
+        imageStyle={styles.headerImageStyle}
+      >
+        {/* Back Button */}
+        <BackButton />
+
+        {/* Date */}
+        <View style={styles.dateRightBox}>
           <Text style={styles.dateText}>{new Date().toDateString()}</Text>
         </View>
 
+        {/* Title */}
         <View style={styles.headerTitleBox}>
-          <Text style={styles.headerTitleIcon}>📄</Text>
+          <Feather name="list" size={42} color="#fff" />
           <Text style={styles.headerTitleText}>View Classes</Text>
         </View>
-      </View>
+      </ImageBackground>
 
       {/* BODY */}
       <View style={styles.whiteContainer}>
         <ScrollView
           keyboardShouldPersistTaps="always"
-          contentContainerStyle={{ paddingBottom: 80, paddingTop: 10 }}
+          contentContainerStyle={{ paddingBottom: 100 }}
         >
           <SectionTitle title={`All Classes (${classes.length})`} />
 
-          {/* LIST OF CLASSES */}
+          {/* CLASS LIST */}
           {classes.length === 0 ? (
             <Text style={styles.emptyText}>No classes added yet.</Text>
           ) : (
-            classes.map((cls) => {
-              const isSelected = cls.id === selectedId;
+            [...classes]
+              .sort((a, b) => {
+                const numA = parseInt(a.name);
+                const numB = parseInt(b.name);
 
-              return (
-                <TouchableOpacity
-                  key={cls.id}
-                  onPress={() =>
-                    setSelectedId((prev) => (prev === cls.id ? null : cls.id))
-                  }
-                  style={[
-                    styles.listRow,
-                    isSelected && { borderWidth: 2, borderColor: "#1C5A52" },
-                  ]}
-                >
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.itemTitle}>
-                      {cls.name} - {cls.section}
-                    </Text>
+                if (numA !== numB) return numA - numB;
 
-                    <Text style={styles.itemMeta}>
-                      Teacher: {cls.classTeacherName}
-                    </Text>
+                return a.section.localeCompare(b.section);
+              })
+              .map((cls) => {
+                const isSelected = cls.id === selectedId;
 
-                    <Text style={styles.itemSubjects}>
-                      {cls.subjects?.map((s) => s.name).join(", ") ||
-                        "No subjects"}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })
+                return (
+                  <TouchableOpacity
+                    key={cls.id}
+                    onPress={() =>
+                      setSelectedId((prev) => (prev === cls.id ? null : cls.id))
+                    }
+                    style={[
+                      styles.listRow,
+                      isSelected && { borderWidth: 2, borderColor: "#1C5A52" },
+                    ]}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.itemTitle}>
+                        {cls.name} - {cls.section}
+                      </Text>
+
+                      <Text style={styles.itemMeta}>
+                        Teacher: {cls.classTeacherName}
+                      </Text>
+
+                      <Text style={styles.itemSubjects}>
+                        {cls.subjects?.map((s) => s.name).join(", ") ||
+                          "No subjects"}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })
           )}
 
-          {/* DETAILS PANEL */}
+          {/* SELECTED CLASS DETAILS */}
           {selectedClass && (
             <View
               style={{
@@ -98,7 +121,12 @@ export default function ViewClassesPage() {
                 Total Students: {selectedClass.totalStudents}
               </Text>
 
-              <Text style={[styles.subHeader, { marginTop: 12 }]}>
+              <Text
+                style={[
+                  styles.itemTitle,
+                  { fontSize: 16, marginTop: 12, marginBottom: 4 },
+                ]}
+              >
                 Subjects
               </Text>
 

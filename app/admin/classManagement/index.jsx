@@ -1,48 +1,70 @@
-import { View, Text, TouchableOpacity } from "react-native";
+// app/admin/classManagement/index.jsx
+import { View, Text, TouchableOpacity, ImageBackground } from "react-native";
 import { useRouter } from "expo-router";
+import { Feather } from "@expo/vector-icons";
 import { styles } from "../../../src/styles/styles";
+import BackButton from "../../../src/components/BackButton.component";
 
 export default function ClassManagementHome() {
   const router = useRouter();
 
   return (
     <View style={styles.screenWrapper}>
-      {/* HEADER */}
-      <View style={styles.curvedHeader}>
+      {/* FULL HEADER WITH BACKGROUND IMAGE */}
+      <ImageBackground
+        source={require("../../../assets/header/bg.png")}
+        style={styles.headerBackground}
+        imageStyle={styles.headerImageStyle}
+      >
+        <BackButton />
+
+        <View style={styles.dateRightBox}>
+          <Text style={styles.dateText}>{new Date().toDateString()}</Text>
+        </View>
+
+        {/* HEADER ICON + TITLE */}
         <View style={styles.headerTitleBox}>
-          <Text style={styles.headerTitleIcon}>🛠️</Text>
+          <Feather
+            name="layers"
+            size={32}
+            color="#fff"
+            style={{ marginBottom: 6 }}
+          />
           <Text style={styles.headerTitleText}>Class Management</Text>
         </View>
-      </View>
+      </ImageBackground>
 
-      {/* GRID MENU */}
+      {/* WHITE CONTAINER WITH MENU */}
       <View style={styles.whiteContainer}>
         <View style={styles.menuGrid}>
-          {/* 1️⃣ Create / Edit Class */}
+          {/* CREATE / EDIT CLASS */}
           <TouchableOpacity
             style={styles.menuCard}
             onPress={() => router.push("/admin/classManagement/create")}
           >
-            <Text style={styles.menuCardIcon}>➕</Text>
-            <Text style={styles.menuCardLabel}>Create / Edit Class</Text>
+            <Feather name="plus-circle" size={28} color="#444" />
+            <Text style={styles.menuCardLabel}>Create / Edit{"\n"}Class</Text>
+            <Feather name="arrow-right" size={20} color="#444" />
           </TouchableOpacity>
 
-          {/* 2️⃣ View Classes */}
+          {/* VIEW CLASSES */}
           <TouchableOpacity
             style={styles.menuCard}
             onPress={() => router.push("/admin/classManagement/view")}
           >
-            <Text style={styles.menuCardIcon}>📄</Text>
-            <Text style={styles.menuCardLabel}>View Classes</Text>
+            <Feather name="list" size={28} color="#444" />
+            <Text style={styles.menuCardLabel}>View{"\n"}Classes</Text>
+            <Feather name="arrow-right" size={20} color="#444" />
           </TouchableOpacity>
 
-          {/* 3️⃣ Schedule Exams */}
+          {/* SCHEDULE EXAMS */}
           <TouchableOpacity
             style={styles.menuCard}
             onPress={() => router.push("/admin/classManagement/exams")}
           >
-            <Text style={styles.menuCardIcon}>📝</Text>
-            <Text style={styles.menuCardLabel}>Schedule Exams</Text>
+            <Feather name="file-text" size={28} color="#444" />
+            <Text style={styles.menuCardLabel}>Schedule{"\n"}Exams</Text>
+            <Feather name="arrow-right" size={20} color="#444" />
           </TouchableOpacity>
         </View>
       </View>

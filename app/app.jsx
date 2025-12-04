@@ -6,8 +6,17 @@ import {
   signInWithCustomToken,
   signInAnonymously,
 } from "firebase/auth";
-import { Slot } from "expo-router"; // ⭐ REQUIRED
+import { Slot } from "expo-router";
 import { useSchoolStore } from "../src/storage/useSchoolStore";
+
+// ⭐ FONT IMPORTS
+import {
+  useFonts,
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+} from "@expo-google-fonts/poppins";
 
 // --- Firebase Context ---
 const FirebaseContext = createContext(null);
@@ -29,7 +38,12 @@ export const FirebaseProvider = ({ children }) => {
   const [auth, setAuth] = useState(null);
 
   useEffect(() => {
-    if (!firebaseConfig) return;
+    // ✅ If no config, just skip Firebase and let app render
+    if (!firebaseConfig) {
+      console.warn("Firebase config missing – running app without Firebase.");
+      setAuthReady(true);
+      return;
+    }
 
     try {
       const app = initializeApp(firebaseConfig, appId);
@@ -80,13 +94,24 @@ export const FirebaseProvider = ({ children }) => {
 export default function App() {
   const loadData = useSchoolStore((s) => s.loadData);
 
+  // ⭐ Load Poppins fonts globally
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
+  });
+
   useEffect(() => {
     loadData(); // Load local DB (classes, exams)
   }, []);
 
+  // Avoid layout flash before fonts ready
+  if (!fontsLoaded) return null;
+
   return (
     <FirebaseProvider>
-      <Slot /> {/* ⭐ MUST BE HERE — renders all routes */}
+      <Slot /> {/* Renders all routes/pages */}
     </FirebaseProvider>
   );
 }
@@ -103,5 +128,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: "#666",
+    fontFamily: "Poppins_400Regular",
   },
 });

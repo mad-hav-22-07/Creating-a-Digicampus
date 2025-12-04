@@ -2,63 +2,77 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  // ---------- SCREEN + CURVED HEADER ----------
+  // ---------- SCREEN + HEADER ----------
   screenWrapper: {
     flex: 1,
     backgroundColor: "#1C5A52",
   },
 
-  curvedHeader: {
-    backgroundColor: "#1C5A52",
-    paddingTop: 50,
-    paddingBottom: 40,
+  headerBackground: {
+    width: "100%",
+    height: 250,
+    justifyContent: "flex-start",
+    paddingTop: 70,
     paddingHorizontal: 20,
+  },
+
+  sectionTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 20,
+    marginBottom: 6,
+  },
+
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1C1C1C",
+    fontFamily: "Poppins_600SemiBold",
+  },
+
+  headerImageStyle: {
+    width: "115%",
+    height: "160%",
+    resizeMode: "cover",
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
   },
 
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end", // pushes everything to the right
-    alignItems: "center",
+  dateRightBox: {
     width: "100%",
-    position: "absolute",
-    top: 55,
-    right: 20,
+    alignItems: "flex-end",
+    paddingRight: 8,
+    marginBottom: 10,
   },
 
   dateText: {
     color: "#fff",
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: "Poppins_500Medium",
   },
 
   headerTitleBox: {
-    marginTop: 16,
     alignItems: "center",
-  },
-
-  headerTitleIcon: {
-    fontSize: 40,
-    color: "#fff",
+    marginTop: 6,
   },
 
   headerTitleText: {
     fontSize: 26,
-    fontWeight: "800",
     color: "#fff",
-    marginTop: 6,
-    textAlign: "center",
+    fontFamily: "Poppins_700Bold",
+    marginTop: 4,
   },
 
+  // ---------- WHITE CONTENT CONTAINER ----------
   whiteContainer: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fff",
     marginTop: -24,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingTop: 26,
   },
 
   // ---------- GRID MENU ----------
@@ -67,7 +81,7 @@ export const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
     rowGap: 18,
-    marginTop: 10,
+    marginTop: 14,
   },
 
   menuCard: {
@@ -76,70 +90,56 @@ export const styles = StyleSheet.create({
     paddingVertical: 22,
     paddingHorizontal: 16,
     borderRadius: 18,
+    alignItems: "flex-start",
     shadowColor: "#000",
-    shadowOpacity: 0.07,
+    shadowOpacity: 0.06,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
 
   menuCardIcon: {
-    fontSize: 30,
     marginBottom: 10,
   },
 
   menuCardLabel: {
     fontSize: 15,
-    fontWeight: "700",
+    fontFamily: "Poppins_600SemiBold",
     color: "#1C1C1C",
     lineHeight: 20,
   },
 
-  // ---------- TOP BAR (if still used) ----------
-  topBar: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-    paddingVertical: 12,
-    backgroundColor: "#1C5A52",
-  },
-  topButton: { flex: 1, alignItems: "center", paddingVertical: 10 },
-  topButtonActive: { backgroundColor: "#174A44" },
-  topButtonText: { fontWeight: "600", color: "#fff" },
-
-  // ---------- TITLES ----------
-  mainTitle: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#1C5A52",
-    marginBottom: 4,
-  },
-  paragraph: { marginTop: 8, color: "#4b5563", fontSize: 14 },
-
+  // ---------- SECTION TITLE ----------
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "700",
+    fontFamily: "Poppins_700Bold",
     color: "#1C1C1C",
-    marginBottom: 10,
+    marginBottom: 12,
   },
 
   // ---------- INPUT ----------
   inputGroup: { marginBottom: 14 },
-  label: { fontWeight: "700", marginBottom: 6, color: "#1C1C1C" },
+
+  label: {
+    fontFamily: "Poppins_600SemiBold",
+    marginBottom: 6,
+    color: "#1C1C1C",
+  },
 
   textInput: {
     borderWidth: 1,
     borderColor: "#CFCFCF",
-    borderRadius: 10,
+    borderRadius: 12,
     padding: 12,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fff",
     fontSize: 15,
+    fontFamily: "Poppins_400Regular",
   },
 
   pickerContainer: {
     borderWidth: 1,
     borderColor: "#CFCFCF",
-    borderRadius: 10,
+    borderRadius: 12,
     backgroundColor: "#fff",
     marginBottom: 14,
   },
@@ -148,27 +148,29 @@ export const styles = StyleSheet.create({
   primaryButton: {
     backgroundColor: "#1C5A52",
     paddingVertical: 14,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 6,
   },
-  cancelButton: {
-    backgroundColor: "#ECECEC",
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
+
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontFamily: "Poppins_600SemiBold",
   },
-  buttonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
-  cancelButtonText: { color: "#374151", fontWeight: "700", fontSize: 16 },
 
   addButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    padding: 6,
+    paddingVertical: 8,
   },
-  addButtonText: { fontWeight: "700", color: "#1C5A52" },
+
+  addButtonText: {
+    fontFamily: "Poppins_600SemiBold",
+    color: "#1C5A52",
+  },
 
   // ---------- SUBJECT ROW ----------
   subjectRow: {
@@ -177,70 +179,57 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
+
   subjectInput: {
     flex: 1,
     borderWidth: 1,
     borderColor: "#CFCFCF",
-    backgroundColor: "#fff",
     borderRadius: 10,
     padding: 10,
     fontSize: 14,
-  },
-  smallCircle: {
-    padding: 8,
-    borderRadius: 999,
-    backgroundColor: "#FCECEC",
+    backgroundColor: "#fff",
+    fontFamily: "Poppins_400Regular",
   },
 
-  // ---------- LIST ITEMS ----------
+  // ---------- LIST ----------
   listRow: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fff",
     padding: 16,
     marginBottom: 12,
-    borderRadius: 14,
+    borderRadius: 16,
     flexDirection: "row",
     gap: 12,
     alignItems: "flex-start",
     shadowColor: "#000",
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.06,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
-  itemTitle: { fontWeight: "800", fontSize: 17, color: "#1C1C1C" },
-  itemMeta: { color: "#6b7280", fontSize: 13, marginTop: 2 },
+
+  itemTitle: {
+    fontSize: 17,
+    color: "#1C1C1C",
+    fontFamily: "Poppins_700Bold",
+  },
+
+  itemMeta: {
+    color: "#6b7280",
+    fontSize: 13,
+    fontFamily: "Poppins_500Medium",
+    marginTop: 2,
+  },
+
   itemSubjects: {
     color: "#1C5A52",
     fontSize: 12,
+    fontFamily: "Poppins_600SemiBold",
     marginTop: 6,
-    fontWeight: "600",
   },
 
-  rowActions: { justifyContent: "space-between", marginLeft: 10 },
-
-  iconButton: {
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: "#E9F4F2",
-    alignItems: "center",
-  },
-  smallIconText: { fontSize: 11, marginTop: 2, color: "#374151" },
-
-  emptyText: {
-    color: "#6b7280",
-    fontStyle: "italic",
-    marginTop: 8,
-  },
-
-  emptyTextRed: { color: "#ef4444", fontWeight: "600" },
-
-  subjectsBox: {
-    borderWidth: 1,
-    borderColor: "#DDE7E5",
-    borderRadius: 12,
-    padding: 10,
-    backgroundColor: "#F7FFFD",
-    marginBottom: 12,
+  rowActions: {
+    justifyContent: "space-between",
+    marginLeft: 8,
   },
 
   // ---------- CHECKBOX ----------
@@ -250,54 +239,54 @@ export const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#1C5A52",
     borderRadius: 6,
-    marginRight: 8,
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
   },
+
   checkboxChecked: {
     width: 22,
     height: 22,
-    borderRadius: 6,
     backgroundColor: "#1C5A52",
-    justifyContent: "center",
+    borderRadius: 6,
     alignItems: "center",
-    marginRight: 8,
+    justifyContent: "center",
   },
 
-  // ---------- EXAM SCHEDULE ----------
+  // ---------- SCHEDULE ----------
   scheduleRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
-    gap: 8,
-    justifyContent: "space-between",
+    gap: 10,
+    marginBottom: 10,
   },
+
   scheduleText: {
     flex: 1,
-    fontWeight: "600",
+    fontFamily: "Poppins_600SemiBold",
     color: "#1C1C1C",
   },
 
   // ---------- GRADE SCALE ----------
   gradesBox: { marginBottom: 16 },
+
   gradeRow: {
     flexDirection: "row",
     gap: 10,
     alignItems: "center",
     marginBottom: 8,
   },
+
   gradeInput: {
     flex: 1,
     borderWidth: 1,
     borderColor: "#CFCFCF",
-    padding: 10,
     borderRadius: 10,
+    padding: 10,
     backgroundColor: "#fff",
     textAlign: "center",
     fontSize: 14,
+    fontFamily: "Poppins_400Regular",
   },
-
-  smallBold: { fontWeight: "700", marginBottom: 6 },
 
   gradeTag: {
     backgroundColor: "#E7F7F5",
@@ -307,39 +296,29 @@ export const styles = StyleSheet.create({
     marginRight: 6,
     marginTop: 6,
   },
+
   gradeTagText: {
-    fontWeight: "700",
+    fontFamily: "Poppins_600SemiBold",
     color: "#1C5A52",
     fontSize: 12,
   },
 
-  // ---------- BACK BUTTON ----------
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 8,
-
-    // ⬆️ move upward
-    marginTop: -5, // adjust between -5 to -20 depending on your design
+  emptyText: {
+    color: "#6b7280",
+    fontFamily: "Poppins_400Regular",
+    fontStyle: "italic",
   },
+
+  emptyTextRed: {
+    color: "#ef4444",
+    fontFamily: "Poppins_600SemiBold",
+  },
+
+  // ---------- BACK BUTTON ----------
   backAbsolute: {
     position: "absolute",
-    top: 20, // ← raise it higher
+    top: 45, // perfect position
     left: 20,
     zIndex: 999,
-  },
-  headerRowRight: {
-    width: "100%",
-    alignItems: "flex-end",
-    paddingRight: 4,
-  },
-
-  backButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1C5A52",
   },
 });

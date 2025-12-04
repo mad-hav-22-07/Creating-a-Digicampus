@@ -1,5 +1,6 @@
+// src/components/Input.component.jsx
 import React from "react";
-import { View, Text, TextInput, StyleSheet } from "react-native";
+import { View, Text, TextInput, StyleSheet, Keyboard } from "react-native";
 
 export default function Input({
   label,
@@ -10,8 +11,10 @@ export default function Input({
 }) {
   return (
     <View style={styles.inputGroup}>
+      {/* Label */}
       <Text style={styles.label}>{label}</Text>
 
+      {/* Text Input */}
       <TextInput
         value={value}
         onChangeText={onChange}
@@ -21,11 +24,10 @@ export default function Input({
         placeholderTextColor="#9CA3AF"
         autoCorrect={false}
         autoCapitalize="none"
-        /** 🔥 Keeps keyboard open when typing */
-        blurOnSubmit={false}
-        /** 🔥 Prevents keyboard flicker inside FlatList */
+        returnKeyType="done"
+        blurOnSubmit={true} // 🔥 allows keyboard to close
+        onSubmitEditing={() => Keyboard.dismiss()} // 🔥 CLOSE KEYBOARD
         underlineColorAndroid="transparent"
-        /** 🔥 Makes input smoother in FlatList */
         importantForAutofill="yes"
       />
     </View>
@@ -33,18 +35,25 @@ export default function Input({
 }
 
 const styles = StyleSheet.create({
-  inputGroup: { marginBottom: 14 },
-  label: {
-    fontWeight: "700",
-    marginBottom: 6,
-    color: "#1C1C1C",
+  inputGroup: {
+    marginBottom: 14,
   },
+
+  label: {
+    fontSize: 14,
+    fontFamily: "Poppins_600SemiBold",
+    color: "#1C1C1C",
+    marginBottom: 6,
+  },
+
   textInput: {
     borderWidth: 1,
     borderColor: "#CFCFCF",
-    borderRadius: 10,
-    padding: 12,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     backgroundColor: "#fff",
-    fontSize: 16,
+    fontSize: 15,
+    fontFamily: "Poppins_500Medium",
   },
 });

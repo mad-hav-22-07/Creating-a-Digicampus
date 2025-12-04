@@ -8,7 +8,10 @@ import {
   Platform,
   TouchableOpacity,
   ScrollView,
+  ImageBackground,
 } from "react-native";
+
+import Feather from "@expo/vector-icons/Feather";
 
 import BackButton from "../components/BackButton.component";
 import Input from "../components/Input.component";
@@ -19,8 +22,6 @@ import SectionTitle from "../components/SectionTitle.component";
 import { saveJSON } from "../storage/storage";
 import { KEY_CLASSES, genId } from "../storage/ids";
 import { styles } from "../styles/styles";
-
-// Zustand Store
 import { useSchoolStore } from "../storage/useSchoolStore";
 
 export default function ClassesScreen() {
@@ -46,40 +47,35 @@ export default function ClassesScreen() {
       subjects: [{ id: genId(), name: "" }],
     });
 
+  // ---------------- VALIDATION ----------------
   const validate = () => {
     if (!form.name.trim()) return Alert.alert("Class name required") || false;
     if (!form.section.trim()) return Alert.alert("Section required") || false;
     if (!form.classTeacherName.trim())
       return Alert.alert("Teacher name required") || false;
     if (!form.totalStudents || isNaN(Number(form.totalStudents)))
-      return Alert.alert("Students must be number") || false;
+      return Alert.alert("Students must be a number") || false;
 
-    // 🔴 PREVENT BLANK SUBJECTS
-    const hasBlankSubject = form.subjects.some(
-      (s) => !s.name || s.name.trim() === ""
-    );
-    if (hasBlankSubject) {
+    // Blank subject check
+    const hasBlank = form.subjects.some((s) => !s.name || s.name.trim() === "");
+    if (hasBlank) {
       Alert.alert("Invalid Subject", "Subject names cannot be empty.");
       return false;
     }
 
-    // 🔴 DUPLICATE SUBJECT CHECK
+    // Duplicate subject check
     const names = form.subjects.map((s) => s.name.trim().toLowerCase());
-    const hasDuplicates = new Set(names).size !== names.length;
-    if (hasDuplicates) {
-      Alert.alert(
-        "Duplicate Subject",
-        "You have added the same subject twice."
-      );
+    if (new Set(names).size !== names.length) {
+      Alert.alert("Duplicate Subject", "You added a subject twice.");
       return false;
     }
 
-    // 🔴 DUPLICATE CLASS CHECK
+    // Duplicate class check
     const exists = classes.some(
       (c) =>
         c.name.toLowerCase().trim() === form.name.toLowerCase().trim() &&
         c.section.toLowerCase().trim() === form.section.toLowerCase().trim() &&
-        c.id !== form.id // avoid blocking while editing
+        c.id !== form.id
     );
     if (exists) {
       Alert.alert("Duplicate Class", "This class already exists.");
@@ -89,6 +85,7 @@ export default function ClassesScreen() {
     return true;
   };
 
+  // ---------------- SAVE ----------------
   const saveClass = () => {
     if (!validate()) return;
 
@@ -138,6 +135,7 @@ export default function ClassesScreen() {
     ]);
   };
 
+  // ---------------- FORM UI ----------------
   const renderForm = () => (
     <View>
       <SectionTitle title="Define / Edit Class" />
@@ -147,20 +145,17 @@ export default function ClassesScreen() {
         value={form.name}
         onChange={(v) => setForm({ ...form, name: v })}
       />
-
       <Input
         label="Section"
         value={form.section}
         onChange={(v) => setForm({ ...form, section: v })}
       />
-
       <Input
         label="Total Students"
         keyboardType="numeric"
         value={form.totalStudents}
         onChange={(v) => setForm({ ...form, totalStudents: v })}
       />
-
       <Input
         label="Class Teacher Name"
         value={form.classTeacherName}
@@ -202,7 +197,8 @@ export default function ClassesScreen() {
         }
         style={styles.addButton}
       >
-        <Text style={styles.addButtonText}>+ Add Subject</Text>
+        <Feather name="plus-circle" size={18} color="#1C5A52" />
+        <Text style={styles.addButtonText}>Add Subject</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.primaryButton} onPress={saveClass}>
@@ -215,23 +211,26 @@ export default function ClassesScreen() {
     </View>
   );
 
+  // ---------------- UI ----------------
   return (
     <View style={styles.screenWrapper}>
-      {/* BACK BUTTON — now positioned higher using topOffset */}
-      <BackButton topOffset={60} />
+      {/* HEADER WITH BACKGROUND */}
+      <ImageBackground
+        source={require("../../assets/header/bg.png")}
+        style={styles.headerBackground}
+        imageStyle={styles.headerImageStyle}
+      >
+        <BackButton />
 
-      {/* HEADER */}
-      <View style={styles.curvedHeader}>
-        <View style={styles.headerRow}>
-          <View style={{ flex: 1 }} />
+        <View style={styles.dateRightBox}>
           <Text style={styles.dateText}>{new Date().toDateString()}</Text>
         </View>
 
         <View style={styles.headerTitleBox}>
-          <Text style={styles.headerTitleIcon}>📚</Text>
+          <Feather name="book" size={42} color="#fff" />
           <Text style={styles.headerTitleText}>Class Management</Text>
         </View>
-      </View>
+      </ImageBackground>
 
       {/* BODY */}
       <KeyboardAvoidingView
@@ -240,41 +239,46 @@ export default function ClassesScreen() {
       >
         <ScrollView
           style={styles.whiteContainer}
-          contentContainerStyle={{ paddingBottom: 120 }}
           keyboardShouldPersistTaps="always"
+          contentContainerStyle={{ paddingBottom: 120 }}
         >
           {renderForm()}
 
-          {classes.map((item) => (
-            <View key={item.id} style={styles.listRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.itemTitle}>
-                  {item.name} - {item.section}
-                </Text>
+          {[...classes]
+            .sort((a, b) => {
+              const numA = parseInt(a.name);
+              const numB = parseInt(b.name);
+              if (numA !== numB) return numA - numB;
+              return a.section.localeCompare(b.section);
+            })
+            .map((item) => (
+              <View key={item.id} style={styles.listRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.itemTitle}>
+                    {item.name} - {item.section}
+                  </Text>
+                  <Text style={styles.itemMeta}>
+                    Teacher: {item.classTeacherName}
+                  </Text>
+                  <Text style={styles.itemSubjects}>
+                    Subjects: {item.subjects.map((s) => s.name).join(", ")}
+                  </Text>
+                </View>
 
-                <Text style={styles.itemMeta}>
-                  Teacher: {item.classTeacherName}
-                </Text>
-
-                <Text style={styles.itemSubjects}>
-                  Subjects: {item.subjects.map((s) => s.name).join(", ")}
-                </Text>
+                <View style={styles.rowActions}>
+                  <SmallIconButton
+                    icon="edit"
+                    color="#2563eb"
+                    onPress={() => startEdit(item)}
+                  />
+                  <SmallIconButton
+                    icon="trash-2"
+                    color="#dc2626"
+                    onPress={() => deleteClass(item.id)}
+                  />
+                </View>
               </View>
-
-              <View style={styles.rowActions}>
-                <SmallIconButton
-                  icon="edit"
-                  color="#2563eb"
-                  onPress={() => startEdit(item)}
-                />
-                <SmallIconButton
-                  icon="trash-2"
-                  color="#dc2626"
-                  onPress={() => deleteClass(item.id)}
-                />
-              </View>
-            </View>
-          ))}
+            ))}
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

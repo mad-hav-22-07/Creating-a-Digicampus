@@ -9,22 +9,23 @@ import {
   ScrollView,
   Platform,
   KeyboardAvoidingView,
+  ImageBackground,
 } from "react-native";
+
+import Feather from "@expo/vector-icons/Feather";
 
 import { styles } from "../styles/styles";
 import { genId } from "../storage/ids";
-
 import BackButton from "../components/BackButton.component";
 import Input from "../components/Input.component";
 import GradeRow from "../components/GradeRow.component";
 import SmallIconButton from "../components/SmallIconButton.component";
 import SectionTitle from "../components/SectionTitle.component";
 
-// ⭐ Zustand Store
+// Zustand Store
 import { useSchoolStore } from "../storage/useSchoolStore";
 
 export default function ExamsScreen() {
-  // ---------- GLOBAL STATE ----------
   const classes = useSchoolStore((s) => s.classes);
   const exams = useSchoolStore((s) => s.exams);
 
@@ -32,14 +33,16 @@ export default function ExamsScreen() {
   const updateExam = useSchoolStore((s) => s.updateExam);
   const deleteExam = useSchoolStore((s) => s.deleteExam);
 
-  // ---------- LOCAL FORM ----------
+  // ------ STATE ------
+  const [showClassList, setShowClassList] = useState(false);
+
   const [form, setForm] = useState({
     id: null,
     classId: "",
     name: "",
     maxMarks: "",
     subjectSchedules: [],
-    gradeType: "percentage", // 👈 NEW: percentage | marks
+    gradeType: "percentage",
     gradeScale: [
       { id: genId(), name: "A", min: "90", max: "100" },
       { id: genId(), name: "B", min: "80", max: "89" },
@@ -53,7 +56,7 @@ export default function ExamsScreen() {
       name: "",
       maxMarks: "",
       subjectSchedules: [],
-      gradeType: "percentage", // reset default
+      gradeType: "percentage",
       gradeScale: [
         { id: genId(), name: "A", min: "90", max: "100" },
         { id: genId(), name: "B", min: "80", max: "89" },
@@ -63,29 +66,29 @@ export default function ExamsScreen() {
   const selectedClass = classes.find((c) => c.id === form.classId);
   const subjects = selectedClass?.subjects?.map((s) => s.name) || [];
 
-  // ---------- SUBJECT TOGGLE ----------
+  // Toggle subject selection
   const toggleSubject = (name) => {
-    setForm((p) => {
-      const exists = p.subjectSchedules.find((s) => s.subjectName === name);
+    setForm((prev) => {
+      const exists = prev.subjectSchedules.find((s) => s.subjectName === name);
 
       return exists
         ? {
-            ...p,
-            subjectSchedules: p.subjectSchedules.filter(
+            ...prev,
+            subjectSchedules: prev.subjectSchedules.filter(
               (s) => s.subjectName !== name
             ),
           }
         : {
-            ...p,
+            ...prev,
             subjectSchedules: [
-              ...p.subjectSchedules,
+              ...prev.subjectSchedules,
               { subjectName: name, date: "" },
             ],
           };
     });
   };
 
-  // ---------- SAVE ----------
+  // Save Exam
   const saveExam = () => {
     if (!form.classId) return Alert.alert("Choose class");
     if (!form.name.trim()) return Alert.alert("Exam name required");
@@ -97,33 +100,34 @@ export default function ExamsScreen() {
       ...form,
       id: form.id || genId(),
       maxMarks: parseInt(form.maxMarks),
-      gradeType: form.gradeType || "percentage", // ensure saved
+      gradeType: form.gradeType,
     };
 
-    if (form.id) {
-      updateExam(cleaned);
-    } else {
-      addExam(cleaned);
-    }
+    if (form.id) updateExam(cleaned);
+    else addExam(cleaned);
 
     reset();
   };
 
-  // ---------- UI ----------
   return (
     <View style={styles.screenWrapper}>
-      {/* HEADER */}
-      <View style={styles.curvedHeader}>
-        <View style={styles.headerRow}>
-          <BackButton />
+      {/* HEADER WITH BACKGROUND IMAGE */}
+      <ImageBackground
+        source={require("../../assets/header/bg.png")}
+        style={styles.headerBackground}
+        imageStyle={styles.headerImageStyle}
+      >
+        <BackButton />
+
+        <View style={styles.dateRightBox}>
           <Text style={styles.dateText}>{new Date().toDateString()}</Text>
         </View>
 
         <View style={styles.headerTitleBox}>
-          <Text style={styles.headerTitleIcon}>📝</Text>
+          <Feather name="file-text" size={42} color="#fff" />
           <Text style={styles.headerTitleText}>Exams</Text>
         </View>
-      </View>
+      </ImageBackground>
 
       {/* BODY */}
       <KeyboardAvoidingView
@@ -135,44 +139,80 @@ export default function ExamsScreen() {
           keyboardShouldPersistTaps="always"
           contentContainerStyle={{ paddingBottom: 120 }}
         >
-          {/* FORM */}
           <SectionTitle title="Schedule Exam" />
 
-          {/* CLASS PICKER */}
+          {/* ------------ CLASS DROPDOWN ------------ */}
           <SectionTitle title="Select Class" />
 
           <View style={styles.pickerContainer}>
-            <ScrollView style={{ maxHeight: 200 }}>
-              {classes.map((c) => (
-                <TouchableOpacity
-                  key={c.id}
-                  onPress={() =>
-                    setForm((p) => ({
-                      ...p,
-                      classId: c.id,
-                      subjectSchedules: [],
-                    }))
-                  }
-                  style={{
-                    padding: 12,
-                    backgroundColor: form.classId === c.id ? "#E7F7F5" : "#fff",
-                  }}
-                >
-                  <Text>
-                    {c.name}-{c.section} ({c.classTeacherName})
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            {/* Dropdown Header */}
+            <TouchableOpacity
+              onPress={() => setShowClassList((p) => !p)}
+              style={{
+                padding: 12,
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ fontFamily: "Poppins_500Medium" }}>
+                {form.classId
+                  ? `${selectedClass?.name}-${selectedClass?.section}`
+                  : "Select Class"}
+              </Text>
+
+              <Feather
+                name={showClassList ? "chevron-up" : "chevron-down"}
+                size={20}
+              />
+            </TouchableOpacity>
+
+            {/* Expanded List */}
+            {showClassList && (
+              <ScrollView style={{ maxHeight: 220 }}>
+                {[...classes]
+                  .sort((a, b) => {
+                    const numA = parseInt(a.name);
+                    const numB = parseInt(b.name);
+                    if (numA !== numB) return numA - numB;
+                    return a.section.localeCompare(b.section);
+                  })
+                  .map((c) => (
+                    <TouchableOpacity
+                      key={c.id}
+                      onPress={() => {
+                        setForm((p) => ({
+                          ...p,
+                          classId: c.id,
+                          subjectSchedules: [],
+                        }));
+                        setShowClassList(false);
+                      }}
+                      style={{
+                        padding: 12,
+                        backgroundColor:
+                          form.classId === c.id ? "#E7F7F5" : "#fff",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#e5e7eb",
+                      }}
+                    >
+                      <Text style={{ fontFamily: "Poppins_400Regular" }}>
+                        {c.name}-{c.section} ({c.classTeacherName})
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+              </ScrollView>
+            )}
           </View>
 
-          {/* INPUTS */}
+          {/* Exam Name */}
           <Input
             label="Exam Name"
             value={form.name}
             onChange={(v) => setForm({ ...form, name: v })}
           />
 
+          {/* Max Marks */}
           <Input
             label="Max Marks"
             value={form.maxMarks}
@@ -180,7 +220,7 @@ export default function ExamsScreen() {
             onChange={(v) => setForm({ ...form, maxMarks: v })}
           />
 
-          {/* SUBJECTS */}
+          {/* ------------ SUBJECT SELECTION ------------ */}
           <SectionTitle title="Subjects" />
 
           <View style={styles.subjectsBox}>
@@ -191,6 +231,7 @@ export default function ExamsScreen() {
                 const existing = form.subjectSchedules.find(
                   (s) => s.subjectName === sub
                 );
+
                 return (
                   <View key={sub} style={styles.scheduleRow}>
                     <TouchableOpacity
@@ -201,7 +242,9 @@ export default function ExamsScreen() {
                           : styles.checkboxUnchecked
                       }
                     >
-                      {existing && <Text style={{ color: "#fff" }}>✓</Text>}
+                      {existing && (
+                        <Feather name="check" color="#fff" size={14} />
+                      )}
                     </TouchableOpacity>
 
                     <Text style={styles.scheduleText}>{sub}</Text>
@@ -227,17 +270,12 @@ export default function ExamsScreen() {
             )}
           </View>
 
-          {/* GRADE SCALE */}
+          {/* ----------- GRADE SCALE ----------- */}
           <SectionTitle title="Grade Scale" />
 
-          {/* 🔥 Grade Type Toggle: Percentage / Marks */}
-          <View
-            style={{
-              flexDirection: "row",
-              marginBottom: 10,
-              gap: 8,
-            }}
-          >
+          {/* Grade Type Toggle */}
+          <View style={{ flexDirection: "row", gap: 8, marginBottom: 10 }}>
+            {/* PERCENTAGE */}
             <TouchableOpacity
               onPress={() =>
                 setForm((p) => ({ ...p, gradeType: "percentage" }))
@@ -250,12 +288,12 @@ export default function ExamsScreen() {
                 borderColor:
                   form.gradeType === "percentage" ? "#1C5A52" : "#D1D5DB",
                 backgroundColor:
-                  form.gradeType === "percentage" ? "#E7F7F5" : "#ffffff",
+                  form.gradeType === "percentage" ? "#E7F7F5" : "#fff",
               }}
             >
               <Text
                 style={{
-                  fontWeight: "600",
+                  fontFamily: "Poppins_500Medium",
                   color:
                     form.gradeType === "percentage" ? "#1C5A52" : "#4B5563",
                   fontSize: 13,
@@ -265,6 +303,7 @@ export default function ExamsScreen() {
               </Text>
             </TouchableOpacity>
 
+            {/* MARKS */}
             <TouchableOpacity
               onPress={() => setForm((p) => ({ ...p, gradeType: "marks" }))}
               style={{
@@ -274,12 +313,12 @@ export default function ExamsScreen() {
                 borderWidth: 1,
                 borderColor: form.gradeType === "marks" ? "#1C5A52" : "#D1D5DB",
                 backgroundColor:
-                  form.gradeType === "marks" ? "#E7F7F5" : "#ffffff",
+                  form.gradeType === "marks" ? "#E7F7F5" : "#fff",
               }}
             >
               <Text
                 style={{
-                  fontWeight: "600",
+                  fontFamily: "Poppins_500Medium",
                   color: form.gradeType === "marks" ? "#1C5A52" : "#4B5563",
                   fontSize: 13,
                 }}
@@ -289,6 +328,7 @@ export default function ExamsScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Grade rows */}
           <View style={styles.gradesBox}>
             {form.gradeScale.map((g) => (
               <GradeRow
@@ -311,6 +351,7 @@ export default function ExamsScreen() {
               />
             ))}
 
+            {/* Add Grade */}
             <TouchableOpacity
               style={styles.addButton}
               onPress={() =>
@@ -323,18 +364,19 @@ export default function ExamsScreen() {
                 }))
               }
             >
-              <Text style={styles.addButtonText}>+ Add Grade</Text>
+              <Feather name="plus-circle" size={18} color="#1C5A52" />
+              <Text style={styles.addButtonText}>Add Grade</Text>
             </TouchableOpacity>
           </View>
 
-          {/* SAVE BUTTON */}
+          {/* Save */}
           <TouchableOpacity style={styles.primaryButton} onPress={saveExam}>
             <Text style={styles.buttonText}>
               {form.id ? "Update Exam" : "Save Exam"}
             </Text>
           </TouchableOpacity>
 
-          {/* EXISTING EXAMS */}
+          {/* List of Exams */}
           <SectionTitle title={`Scheduled Exams (${exams.length})`} />
 
           {exams.map((item) => {
