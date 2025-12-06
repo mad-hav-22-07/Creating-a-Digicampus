@@ -1,5 +1,7 @@
+// src/screens/StudentHomeScreen.jsx
+import Feather from "@expo/vector-icons/Feather";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   FlatList,
   StyleSheet,
@@ -8,141 +10,198 @@ import {
   View,
 } from "react-native";
 
+import StudentLayout from "../components/StudentLayout";
+import { useClassStore } from "../store/classStore";
+
 export default function StudentHomeScreen() {
   const params = useLocalSearchParams();
-  const { action, classId, students } = params;
 
-  const [classes, setClasses] = useState([]);
+  const classes = useClassStore((s) => s.classes);
+  const addClass = useClassStore((s) => s.addClass);
+  const replaceClassStudents = useClassStore((s) => s.replaceClassStudents);
 
-  // Handle uploads or replacements coming from UploadClassData
+  // HANDLE ACTIONS FROM UPLOAD SCREEN
   useEffect(() => {
-    if (!action) return;
+    if (!params?.action) return;
 
-    const parsedStudents =
-      typeof students === "string" ? JSON.parse(students) : students;
+    const { action, classId } = params;
+    let parsedStudents = params.students;
 
-    if (action === "upload") {
-      setClasses((prev) => {
-        const exists = prev.find((c) => c.id === classId);
-        if (exists) return prev;
-        return [
-          ...prev,
-          { id: classId, name: `Class ${classId}`, students: parsedStudents },
-        ];
-      });
+    if (typeof parsedStudents === "string") {
+      try {
+        parsedStudents = JSON.parse(parsedStudents);
+      } catch (e) {
+        console.log("JSON Parse Error:", e);
+        return;
+      }
     }
 
-    if (action === "replace") {
-      setClasses((prev) =>
-        prev.map((c) =>
-          c.id === classId ? { ...c, students: parsedStudents } : c
-        )
-      );
-    }
-  }, [action]);
+    if (action === "upload") addClass(classId, parsedStudents);
+    if (action === "replace") replaceClassStudents(classId, parsedStudents);
+
+    router.setParams({ action: null, classId: null, students: null });
+  }, [params?.action]);
+  function getTodayText() {
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const d = new Date();
+    const day = days[d.getDay()];
+    const date = d.getDate();
+    const month = months[d.getMonth()];
+
+    return `${day} ${date} ${month}`;
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Student Data</Text>
-
-      {/* Top Buttons */}
+    <StudentLayout
+      title="Student Data"
+      icon="users"
+      subtitle=""
+      backOffset={40}
+      titleOffset={60}
+    >
+      {/* TOP BUTTONS */}
       <View style={styles.topButtonsContainer}>
-        {/* UPLOAD EXCEL */}
+        {/* UPLOAD */}
         <TouchableOpacity
           style={styles.optionBox}
-          onPress={() =>
-            router.push({
-              pathname: "/upload",
-              params: {
-                classList: classes.map((c) => c.id).join(","),
-              },
-            })
-          }
+          onPress={() => router.push("/upload")}
         >
-          <Text style={styles.optionText}>Upload Class Data</Text>
-          <Text style={styles.arrow}>→</Text>
+          <View>
+            <Text style={styles.optionLabel}>Upload</Text>
+            <Text style={styles.optionTitle}>Class Data</Text>
+          </View>
+          <Feather name="upload-cloud" size={24} color="#0F5A52" />
         </TouchableOpacity>
 
-        {/* EDIT → goes to students/select */}
+        {/* ADD & EDIT */}
         <TouchableOpacity
           style={styles.optionBox}
-          onPress={() =>
-            router.push({
-              pathname: "/students/select",
-              params: {
-                classes: JSON.stringify(classes),
-              },
-            })
-          }
+          onPress={() => router.push("/students/select")}
         >
-          <Text style={styles.optionText}>Add & Edit Records</Text>
-          <Text style={styles.arrow}>→</Text>
+          <View>
+            <Text style={styles.optionLabel}>Add & Edit</Text>
+            <Text style={styles.optionTitle}>Records</Text>
+          </View>
+          <Feather name="list" size={24} color="#0F5A52" />
         </TouchableOpacity>
       </View>
 
-      {/* CLASS RECORD LIST */}
+      {/* SECTION TITLE */}
       <Text style={styles.subTitle}>CLASS RECORDS</Text>
 
       {classes.length === 0 && (
-        <Text style={{ color: "#888", marginTop: 10 }}>
-          No class data uploaded yet.
-        </Text>
+        <Text style={styles.emptyText}>No class data available.</Text>
       )}
 
+      {/* CLASS LIST */}
       <FlatList
         data={classes}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.classItem}
-            onPress={() =>
-              router.push({
-                pathname: `/view/${item.id}`,
-                params: {
-                  students: JSON.stringify(item.students),
-                },
-              })
-            }
+            onPress={() => router.push(`/view/${item.id}?classId=${item.id}`)}
           >
-            <Text style={styles.classText}>{item.name}</Text>
-            <Text style={styles.arrow}>›</Text>
+            <View style={styles.rowLeft}>
+              <View style={styles.classIcon}>
+                <Feather name="users" size={18} color="#0F5A52" />
+              </View>
+              <Text style={styles.classText}>{item.name}</Text>
+            </View>
+
+            <Feather name="chevron-right" size={22} color="#0F5A52" />
           </TouchableOpacity>
         )}
       />
-    </View>
+    </StudentLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  header: { fontSize: 26, fontWeight: "700", marginBottom: 20 },
   topButtonsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+    marginBottom: 18,
   },
+
   optionBox: {
     width: "48%",
-    backgroundColor: "#fdeee7",
-    padding: 18,
-    borderRadius: 15,
+    backgroundColor: "#FDECE0",
+    padding: 16,
+    borderRadius: 16,
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
   },
-  optionText: { fontSize: 16, fontWeight: "600" },
-  arrow: { fontSize: 18, fontWeight: "700", color: "#444" },
+
+  optionLabel: {
+    fontSize: 13,
+    fontFamily: "DMSans-Medium",
+    color: "#555",
+  },
+
+  optionTitle: {
+    fontSize: 17,
+    fontFamily: "DMSans-Bold",
+    color: "#222",
+  },
+
   subTitle: {
     fontSize: 16,
-    fontWeight: "700",
-    marginTop: 25,
-    marginBottom: 10,
+    fontFamily: "DMSans-Bold",
+    marginVertical: 12,
+    color: "#000",
   },
+
+  emptyText: {
+    fontFamily: "DMSans-Regular",
+    color: "#777",
+    marginTop: 6,
+  },
+
   classItem: {
     flexDirection: "row",
     justifyContent: "space-between",
-    backgroundColor: "#eef6f4",
-    padding: 18,
-    borderRadius: 12,
-    marginBottom: 12,
+    alignItems: "center",
+    backgroundColor: "#EEF6F4",
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 10,
   },
-  classText: { fontSize: 16, fontWeight: "600" },
+
+  rowLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  classIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#D5EBE6",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+
+  classText: {
+    fontSize: 16,
+    fontFamily: "DMSans-Medium",
+    color: "#333",
+  },
 });

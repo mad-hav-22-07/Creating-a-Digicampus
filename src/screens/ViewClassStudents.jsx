@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+// src/screens/ViewClassStudents.jsx
 import { useMemo, useState } from "react";
 import {
   FlatList,
@@ -9,57 +9,79 @@ import {
   View,
 } from "react-native";
 
-export default function ViewClassStudents() {
-  const params = useLocalSearchParams();
+import StudentLayout from "../components/StudentLayout";
+import { useClassStore } from "../store/classStore";
 
-  const classId = params.classId;
-  const students = JSON.parse(params.students || "[]");
+export default function ViewClassStudents({ classId }) {
+  const classes = useClassStore((s) => s.classes);
+
+  const safeClassId = String(classId || "");
+  const classData = classes.find((c) => String(c.id) === safeClassId);
+
+  // If class not found
+  if (!classData) {
+    return (
+      <StudentLayout
+        title="Class Not Found"
+        subtitle={`Class ${safeClassId}`}
+        icon="users"
+        backOffset={40}
+        titleOffset={70}
+      >
+        <Text style={styles.notFoundText}>
+          This class may have been deleted or never created.
+        </Text>
+      </StudentLayout>
+    );
+  }
+
+  const students = Array.isArray(classData.students) ? classData.students : [];
 
   const [search, setSearch] = useState("");
   const [sortMode, setSortMode] = useState("roll-asc");
 
+  // Filter + Sort
   const filteredStudents = useMemo(() => {
     let data = [...students];
 
-    // Search filter
     data = data.filter(
       (s) =>
         s.name.toLowerCase().includes(search.toLowerCase()) ||
         s.roll.toString().includes(search)
     );
 
-    // Sorting
     switch (sortMode) {
       case "roll-asc":
-        data.sort((a, b) => a.roll - b.roll);
-        break;
+        return data.sort((a, b) => a.roll - b.roll);
       case "roll-desc":
-        data.sort((a, b) => b.roll - a.roll);
-        break;
+        return data.sort((a, b) => b.roll - a.roll);
       case "name-asc":
-        data.sort((a, b) => a.name.localeCompare(b.name));
-        break;
+        return data.sort((a, b) => a.name.localeCompare(b.name));
       case "name-desc":
-        data.sort((a, b) => b.name.localeCompare(a.name));
-        break;
+        return data.sort((a, b) => b.name.localeCompare(a.name));
+      default:
+        return data;
     }
-
-    return data;
   }, [students, search, sortMode]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Class {classId} Students</Text>
-
-      {/* Search */}
+    <StudentLayout
+      title="Students"
+      subtitle={`Class ${safeClassId}`}
+      icon="users"
+      backOffset={40}
+      titleOffset={70} // THIS FIXES YOUR ISSUE
+    >
+      {/* Search Box */}
       <TextInput
         style={styles.searchBox}
-        placeholder="Search by name or roll"
+        placeholder="Search by name or roll..."
+        placeholderTextColor="#999"
         value={search}
         onChangeText={setSearch}
       />
 
-      {/* Sort */}
+      {/* Sorting */}
       <View style={styles.sortRow}>
         <TouchableOpacity onPress={() => setSortMode("roll-asc")}>
           <Text style={styles.sortBtn}>Roll ↑</Text>
@@ -78,7 +100,10 @@ export default function ViewClassStudents() {
         </TouchableOpacity>
       </View>
 
-      {/* Student list */}
+      {students.length === 0 && (
+        <Text style={styles.noStudents}>No students in this class.</Text>
+      )}
+
       <FlatList
         data={filteredStudents}
         keyExtractor={(item) => item.id}
@@ -90,45 +115,62 @@ export default function ViewClassStudents() {
           </View>
         )}
       />
-    </View>
+    </StudentLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-
-  header: { fontSize: 22, fontWeight: "700", marginBottom: 20 },
+  notFoundText: {
+    color: "#777",
+    fontSize: 16,
+    fontFamily: "DMSans-Medium",
+    textAlign: "center",
+    marginTop: 40,
+  },
 
   searchBox: {
-    padding: 12,
+    padding: 14,
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 12,
-    marginBottom: 15,
+    borderColor: "#ddd",
+    borderRadius: 14,
+    fontSize: 16,
+    fontFamily: "DMSans-Regular",
+    marginBottom: 14,
+    backgroundColor: "#F9F9F9",
   },
 
   sortRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 15,
+    marginBottom: 14,
   },
 
   sortBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    backgroundColor: "#eee",
-    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#EEF6F4",
+    borderRadius: 10,
+    fontFamily: "DMSans-Medium",
+    color: "#0F5A52",
+  },
+
+  noStudents: {
+    marginTop: 20,
+    color: "#999",
+    fontFamily: "DMSans-Regular",
+    fontSize: 15,
   },
 
   studentItem: {
     padding: 15,
-    backgroundColor: "#eef6f4",
-    borderRadius: 12,
+    backgroundColor: "#EEF6F4",
+    borderRadius: 14,
     marginBottom: 10,
   },
 
   studentText: {
-    fontSize: 17,
-    fontWeight: "600",
+    fontSize: 16,
+    fontFamily: "DMSans-Medium",
+    color: "#333",
   },
 });

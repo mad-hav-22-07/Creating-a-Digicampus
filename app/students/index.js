@@ -1,4 +1,5 @@
-import EditStudentList from "../../src/screens/EditStudentList";
-export default function EditClass() {
-  return <EditStudentList />;
+import { Redirect } from "expo-router";
+
+export default function StudentsRoot() {
+  return <Redirect href="/students/select" />;
 }

@@ -1,3 +1,5 @@
+// src/screens/EditStudentList.jsx
+
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -10,83 +12,74 @@ import {
   View,
 } from "react-native";
 
-export default function EditStudentList() {
-  const params = useLocalSearchParams();
+import StudentLayout from "../components/StudentLayout";
+import { useClassStore } from "../store/classStore";
 
-  const classId = params.classId;
-  const classes = JSON.parse(params.classes || "[]");
+export default function EditStudentList() {
+  const { classId } = useLocalSearchParams();
+
+  const classes = useClassStore((s) => s.classes);
+  const replaceClassStudents = useClassStore((s) => s.replaceClassStudents);
+  const setClasses = useClassStore((s) => s.setClasses);
 
   const initialStudents = classes.find((c) => c.id === classId)?.students || [];
-
   const [students, setStudents] = useState(initialStudents);
 
   const [search, setSearch] = useState("");
   const [sortMode, setSortMode] = useState("roll-asc");
 
-  const sortByRoll = (list) => [...list].sort((a, b) => a.roll - b.roll);
-
-  // Update class list in parent screen
+  // 🔄 Reload when class updates globally
   useEffect(() => {
-    const updatedClasses = classes.map((cls) =>
-      cls.id === classId ? { ...cls, students: sortByRoll(students) } : cls
-    );
+    const updated = classes.find((c) => c.id === classId)?.students || [];
+    setStudents(updated);
+  }, [classes]);
 
-    // Update StudentHomeScreen
-    router.setParams({
-      classes: JSON.stringify(updatedClasses),
-    });
-  }, [students]);
-
-  // ============================
-  // Delete a student
-  // ============================
   const handleDelete = (id) => {
-    const target = students.find((s) => s.id === id);
+    const s = students.find((st) => st.id === id);
 
     Alert.alert(
       "Delete Student?",
-      `Remove ${target.name} (Roll ${target.roll}) from Class ${classId}?`,
+      `Remove ${s.name} (Roll ${s.roll}) from Class ${classId}?`,
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Delete",
           style: "destructive",
           onPress: () => {
-            setStudents((prev) => prev.filter((s) => s.id !== id));
+            const updated = students.filter((st) => st.id !== id);
+            setStudents(updated);
+            replaceClassStudents(classId, updated);
           },
         },
       ]
     );
   };
 
-  // ============================
-  // Delete Entire Class
-  // ============================
   const deleteClass = () => {
     Alert.alert(
       "Delete Entire Class?",
-      `This will completely remove Class ${classId}.`,
+      `This will permanently delete Class ${classId}.`,
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Delete",
           style: "destructive",
           onPress: () => {
-            const updated = classes.filter((c) => c.id !== classId);
-
-            router.push({
-              pathname: "/",
-              params: { classes: JSON.stringify(updated) },
-            });
+            setClasses((prev) => prev.filter((c) => c.id !== classId));
+            router.push("/");
           },
         },
       ]
     );
   };
 
-  // ============================
-  // Filter + Sort students
-  // ============================
+  const goToEdit = (student) => {
+    router.push({
+      pathname: `/students/${classId}/edit`,
+      params: { studentId: student.id },
+    });
+  };
+
   const filteredStudents = useMemo(() => {
     let data = [...students];
 
@@ -98,71 +91,60 @@ export default function EditStudentList() {
 
     switch (sortMode) {
       case "roll-asc":
-        data.sort((a, b) => a.roll - b.roll);
-        break;
+        return data.sort((a, b) => a.roll - b.roll);
       case "roll-desc":
-        data.sort((a, b) => b.roll - a.roll);
-        break;
+        return data.sort((a, b) => b.roll - a.roll);
       case "name-asc":
-        data.sort((a, b) => a.name.localeCompare(b.name));
-        break;
+        return data.sort((a, b) => a.name.localeCompare(b.name));
       case "name-desc":
-        data.sort((a, b) => b.name.localeCompare(a.name));
-        break;
+        return data.sort((a, b) => b.name.localeCompare(a.name));
     }
-
     return data;
   }, [students, search, sortMode]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Edit Records — Class {classId}</Text>
-
-      {/* Delete Entire Class */}
+    <StudentLayout
+      title="Edit Records"
+      subtitle={`Class ${classId}`}
+      icon="edit"
+      backOffset={40}
+      titleOffset={50}
+    >
+      {/* DELETE CLASS */}
       <TouchableOpacity style={styles.deleteClassBtn} onPress={deleteClass}>
         <Text style={styles.deleteClassText}>Delete Entire Class</Text>
       </TouchableOpacity>
 
-      {/* Search */}
+      {/* SEARCH */}
       <TextInput
         style={styles.searchBox}
-        placeholder="Search by name or roll"
+        placeholder="Search student..."
         value={search}
         onChangeText={setSearch}
+        placeholderTextColor="#999"
       />
 
-      {/* Sort Buttons */}
+      {/* SORT OPTIONS */}
       <View style={styles.sortRow}>
         <TouchableOpacity onPress={() => setSortMode("roll-asc")}>
           <Text style={styles.sortBtn}>Roll ↑</Text>
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => setSortMode("roll-desc")}>
           <Text style={styles.sortBtn}>Roll ↓</Text>
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => setSortMode("name-asc")}>
           <Text style={styles.sortBtn}>A–Z</Text>
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => setSortMode("name-desc")}>
           <Text style={styles.sortBtn}>Z–A</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Bulk Edit + Replace Excel */}
+      {/* BULK + REPLACE */}
       <View style={styles.actionRow}>
         <TouchableOpacity
           style={styles.actionBtn}
-          onPress={() =>
-            router.push({
-              pathname: `/students/${classId}/bulk`,
-              params: {
-                students: JSON.stringify(students),
-                classes: JSON.stringify(classes),
-              },
-            })
-          }
+          onPress={() => router.push(`/students/${classId}/bulk-edit`)}
         >
           <Text style={styles.actionText}>Bulk Edit</Text>
         </TouchableOpacity>
@@ -172,11 +154,7 @@ export default function EditStudentList() {
           onPress={() =>
             router.push({
               pathname: "/upload",
-              params: {
-                replaceMode: "true",
-                classId,
-                classList: classes.map((c) => c.id).join(","),
-              },
+              params: { replaceMode: "true", classId },
             })
           }
         >
@@ -184,7 +162,7 @@ export default function EditStudentList() {
         </TouchableOpacity>
       </View>
 
-      {/* Student List */}
+      {/* STUDENT LIST */}
       <FlatList
         data={filteredStudents}
         keyExtractor={(item) => item.id}
@@ -192,16 +170,7 @@ export default function EditStudentList() {
           <View style={styles.studentItem}>
             <TouchableOpacity
               style={{ flex: 1 }}
-              onPress={() =>
-                router.push({
-                  pathname: `/students/${classId}/edit`,
-                  params: {
-                    student: JSON.stringify(item),
-                    students: JSON.stringify(students),
-                    classes: JSON.stringify(classes),
-                  },
-                })
-              }
+              onPress={() => goToEdit(item)}
             >
               <Text style={styles.studentText}>
                 {item.roll}. {item.name}
@@ -212,52 +181,44 @@ export default function EditStudentList() {
               onPress={() => handleDelete(item.id)}
               style={styles.deleteBtn}
             >
-              <Text style={styles.deleteText}>🗑️</Text>
+              <Text style={styles.deleteIcon}>🗑️</Text>
             </TouchableOpacity>
           </View>
         )}
       />
 
-      {/* Add Student */}
+      {/* ADD STUDENT FAB */}
       <TouchableOpacity
         style={styles.addBtn}
-        onPress={() =>
-          router.push({
-            pathname: `/students/${classId}/add`,
-            params: {
-              students: JSON.stringify(students),
-              classes: JSON.stringify(classes),
-            },
-          })
-        }
+        onPress={() => router.push(`/students/${classId}/add`)}
       >
         <Text style={styles.addBtnText}>+</Text>
       </TouchableOpacity>
-    </View>
+    </StudentLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-
-  header: { fontSize: 22, fontWeight: "700", marginBottom: 20 },
-
   deleteClassBtn: {
-    backgroundColor: "#ffe5e5",
+    backgroundColor: "#FFE8E8",
     padding: 12,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: "center",
     marginBottom: 15,
   },
-
-  deleteClassText: { color: "#d00", fontSize: 16, fontWeight: "700" },
+  deleteClassText: {
+    color: "#D30000",
+    fontSize: 15,
+    fontFamily: "DMSans-Bold",
+  },
 
   searchBox: {
     padding: 12,
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 12,
+    borderColor: "#DDD",
+    borderRadius: 14,
     marginBottom: 15,
+    fontFamily: "DMSans-Regular",
   },
 
   sortRow: {
@@ -269,8 +230,9 @@ const styles = StyleSheet.create({
   sortBtn: {
     paddingVertical: 6,
     paddingHorizontal: 10,
-    backgroundColor: "#eee",
-    borderRadius: 8,
+    backgroundColor: "#EEE",
+    borderRadius: 10,
+    fontFamily: "DMSans-Medium",
   },
 
   actionRow: {
@@ -280,45 +242,60 @@ const styles = StyleSheet.create({
   },
 
   actionBtn: {
-    backgroundColor: "#fdeee7",
-    padding: 12,
-    borderRadius: 10,
+    backgroundColor: "#FDECE0",
+    padding: 14,
+    borderRadius: 14,
     width: "48%",
     alignItems: "center",
   },
 
-  actionText: { fontSize: 15, fontWeight: "600" },
+  actionText: {
+    fontFamily: "DMSans-Bold",
+    fontSize: 15,
+    color: "#333",
+  },
 
   studentItem: {
     flexDirection: "row",
     justifyContent: "space-between",
-    backgroundColor: "#eef6f4",
-    padding: 15,
-    borderRadius: 12,
+    backgroundColor: "#EEF6F4",
+    padding: 16,
+    borderRadius: 14,
     marginBottom: 10,
   },
 
-  studentText: { fontSize: 17, fontWeight: "600" },
+  studentText: {
+    fontSize: 16,
+    fontFamily: "DMSans-Medium",
+    color: "#222",
+  },
 
   deleteBtn: {
     paddingHorizontal: 10,
-    justifyContent: "center",
-    alignItems: "center",
   },
 
-  deleteText: { fontSize: 20, color: "red" },
+  deleteIcon: {
+    fontSize: 20,
+  },
 
   addBtn: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#0066ff",
+    backgroundColor: "#0F5A52",
     position: "absolute",
     bottom: 25,
     right: 25,
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
 
-  addBtnText: { fontSize: 28, fontWeight: "bold", color: "#fff" },
+  addBtnText: {
+    color: "#FFF",
+    fontSize: 30,
+    fontFamily: "DMSans-Bold",
+  },
 });
