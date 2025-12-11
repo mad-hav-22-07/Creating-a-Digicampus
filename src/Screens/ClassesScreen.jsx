@@ -19,14 +19,16 @@ import SmallIconButton from "../components/SmallIconButton.component";
 import SubjectRow from "../components/SubjectRow.component";
 import SectionTitle from "../components/SectionTitle.component";
 
-import { saveJSON } from "../storage/storage";
-import { KEY_CLASSES, genId } from "../storage/ids";
+import { genId } from "../storage/ids";
 import { styles } from "../styles/styles";
 import { useSchoolStore } from "../storage/useSchoolStore";
 
 export default function ClassesScreen() {
   const classes = useSchoolStore((s) => s.classes);
-  const setClasses = useSchoolStore((s) => s.setClasses);
+
+  const addClass = useSchoolStore((s) => s.addClass);
+  const updateClass = useSchoolStore((s) => s.updateClass);
+  const deleteClassFromDB = useSchoolStore((s) => s.deleteClass);
 
   const [form, setForm] = useState({
     id: null,
@@ -85,12 +87,11 @@ export default function ClassesScreen() {
     return true;
   };
 
-  // ---------------- SAVE ----------------
-  const saveClass = () => {
+  // ---------------- SAVE (Firestore) ----------------
+  const saveClass = async () => {
     if (!validate()) return;
 
     const cleaned = {
-      id: form.id || genId(),
       name: form.name.trim(),
       section: form.section.trim(),
       totalStudents: Number(form.totalStudents),
@@ -98,12 +99,13 @@ export default function ClassesScreen() {
       subjects: form.subjects.map((s) => ({ name: s.name })),
     };
 
-    const updated = classes.some((c) => c.id === cleaned.id)
-      ? classes.map((c) => (c.id === cleaned.id ? cleaned : c))
-      : [cleaned, ...classes];
-
-    setClasses(updated);
-    saveJSON(KEY_CLASSES, updated);
+    if (form.id) {
+      // UPDATE FIRESTORE
+      await updateClass({ id: form.id, ...cleaned });
+    } else {
+      // ADD NEW FIRESTORE DOCUMENT
+      await addClass(cleaned);
+    }
 
     Alert.alert("Success", form.id ? "Updated" : "Added");
     resetForm();
@@ -126,11 +128,7 @@ export default function ClassesScreen() {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => {
-          const next = classes.filter((c) => c.id !== id);
-          setClasses(next);
-          saveJSON(KEY_CLASSES, next);
-        },
+        onPress: () => deleteClassFromDB(id),
       },
     ]);
   };
